@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全球城市時鐘 (自動排序版)</title>
+    <title>全球城市時鐘 - 完整強大版</title>
     <style>
         :root { --primary-color: #2c3e50; --accent-color: #3498db; }
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
@@ -23,7 +23,7 @@
 
 <div class="card">
     <h1>🌍 全球時間查詢</h1>
-    <input type="text" id="search" class="search-box" placeholder="搜尋國家、城市、縮寫...">
+    <input type="text" id="search" class="search-box" placeholder="搜尋國家、城市或簡寫 (如: 台北, 美國, Bali)">
     <select id="timezone-select"></select>
 
     <div class="display-area">
@@ -35,35 +35,54 @@
 </div>
 
 <script>
-    // 手寫對照表
+    // 終極手寫對照表：已補全全球主要區域
     const manualList = {
-        "Asia/Taipei": ["台北, 台灣", "台灣 台北 Taiwan Taipei"],
-        "Asia/Tokyo": ["東京, 日本", "日本 東京 Japan Tokyo"],
-        "Asia/Seoul": ["首爾, 韓國", "韓國 首爾 Korea Seoul"],
-        "Asia/Hong_Kong": ["香港, 中國", "香港 HK Hong Kong"],
-        "Asia/Shanghai": ["上海, 中國", "上海 中國 China Shanghai"],
-        "Asia/Singapore": ["新加坡", "新加坡 Singapore"],
-        "Asia/Bangkok": ["曼谷, 泰國", "泰國 曼谷 Thailand Bangkok"],
-        "Asia/Makassar": ["峇里島, 印尼", "印尼 峇里島 Indonesia Bali"],
-        "Asia/Jakarta": ["雅加達, 印尼", "印尼 雅加達 Jakarta"],
-        "Asia/Ho_Chi_Minh": ["胡志明市, 越南", "越南 胡志明市 Vietnam"],
-        "America/New_York": ["紐約, 美國 (東岸)", "美國 紐約 USA New York East"],
+        // --- 非洲 ---
+        "Africa/Cairo": ["開羅, 埃及", "埃及 開羅 Egypt Cairo"],
+        "Africa/Johannesburg": ["約翰尼斯堡, 南非", "南非 約翰尼斯堡 South Africa"],
+        "Africa/Nairobi": ["奈洛比, 肯亞", "肯亞 奈洛比 Kenya Nairobi"],
+        // --- 美洲 ---
+        "America/Anchorage": ["安克拉治, 阿拉斯加", "美國 阿拉斯加 Alaska"],
+        "America/Argentina/Buenos_Aires": ["布宜諾斯艾利斯, 阿根廷", "阿根廷 Argentina"],
         "America/Chicago": ["芝加哥, 美國 (中部)", "美國 芝加哥 USA Chicago"],
         "America/Denver": ["丹佛, 美國 (山區)", "美國 丹佛 USA Denver"],
         "America/Los_Angeles": ["洛杉磯, 美國 (西岸)", "美國 洛杉磯 USA Los Angeles LA"],
-        "America/San_Francisco": ["舊金山, 美國", "美國 舊金山 San Francisco SF"],
+        "America/Mexico_City": ["墨西哥城, 墨西哥", "墨西哥 Mexico City"],
+        "America/New_York": ["紐約, 美國 (東岸)", "美國 紐約 USA New York East"],
         "America/Phoenix": ["鳳凰城, 美國", "美國 鳳凰城 Phoenix"],
-        "America/Anchorage": ["安克拉治, 阿拉斯加", "美國 阿拉斯加 Alaska"],
-        "Pacific/Honolulu": ["檀香山, 夏威夷", "美國 夏威夷 Hawaii"],
-        "America/Vancouver": ["溫哥華, 加拿大", "加拿大 溫哥華 Canada Vancouver"],
+        "America/Sao_Paulo": ["聖保羅, 巴西", "巴西 聖保羅 Brazil Sao Paulo"],
         "America/Toronto": ["多倫多, 加拿大", "加拿大 多倫多 Canada Toronto"],
-        "Europe/London": ["倫敦, 英國", "英國 倫敦 UK London England"],
-        "Europe/Paris": ["巴黎, 法國", "法國 巴黎 France Paris"],
-        "Europe/Berlin": ["柏林, 德國", "德國 柏林 Germany Berlin"],
-        "Europe/Rome": ["羅馬, 義大利", "義大利 羅馬 Italy Rome"],
-        "Australia/Sydney": ["雪梨, 澳洲", "澳洲 雪梨 Australia Sydney"],
+        "America/Vancouver": ["溫哥華, 加拿大", "加拿大 溫哥華 Canada Vancouver"],
+        "Pacific/Honolulu": ["檀香山, 夏威夷", "美國 夏威夷 Hawaii"],
+        // --- 亞洲 ---
+        "Asia/Bangkok": ["曼谷, 泰國", "泰國 曼谷 Thailand Bangkok"],
+        "Asia/Dubai": ["杜拜, 阿聯酋", "杜拜 阿拉伯聯合大公國 Dubai UAE"],
+        "Asia/Ho_Chi_Minh": ["胡志明市, 越南", "越南 胡志明市 Vietnam"],
+        "Asia/Hong_Kong": ["香港, 中國", "香港 HK Hong Kong"],
+        "Asia/Jakarta": ["雅加達, 印尼", "印尼 雅加達 Jakarta"],
+        "Asia/Kolkata": ["加爾各答, 印度", "印度 India Kolkata"],
+        "Asia/Kuala_Lumpur": ["吉隆坡, 馬來西亞", "馬來西亞 吉隆坡 Malaysia KL"],
+        "Asia/Makassar": ["峇里島, 印尼", "印尼 峇里島 Indonesia Bali"],
+        "Asia/Manila": ["馬尼拉, 菲律賓", "菲律賓 馬尼拉 Philippines Manila"],
+        "Asia/Seoul": ["首爾, 韓國", "韓國 首爾 Korea Seoul"],
+        "Asia/Shanghai": ["上海, 中國", "上海 中國 China Shanghai"],
+        "Asia/Singapore": ["新加坡", "新加坡 Singapore"],
+        "Asia/Taipei": ["台北, 台灣", "台灣 台北 Taiwan Taipei"],
+        "Asia/Tokyo": ["東京, 日本", "日本 東京 Japan Tokyo"],
+        // --- 大洋洲 ---
         "Australia/Perth": ["伯斯, 澳洲", "澳洲 伯斯 Australia Perth"],
-        "Pacific/Auckland": ["奧克蘭, 紐西蘭", "紐西蘭 奧克蘭 New Zealand"]
+        "Australia/Sydney": ["雪梨, 澳洲", "澳洲 雪梨 Australia Sydney"],
+        "Australia/Melbourne": ["墨爾本, 澳洲", "澳洲 墨爾本 Melbourne"],
+        "Pacific/Auckland": ["奧克蘭, 紐西蘭", "紐西蘭 奧克蘭 New Zealand"],
+        // --- 歐洲 ---
+        "Europe/Amsterdam": ["阿姆斯特丹, 荷蘭", "荷蘭 Amsterdam"],
+        "Europe/Berlin": ["柏林, 德國", "德國 柏林 Germany Berlin"],
+        "Europe/London": ["倫敦, 英國", "英國 倫敦 UK London England"],
+        "Europe/Madrid": ["馬德里, 西班牙", "西班牙 馬德里 Spain Madrid"],
+        "Europe/Moscow": ["莫斯科, 俄羅斯", "俄羅斯 莫斯科 Russia Moscow"],
+        "Europe/Paris": ["巴黎, 法國", "法國 巴黎 France Paris"],
+        "Europe/Rome": ["羅馬, 義大利", "義大利 羅馬 Italy Rome"],
+        "Europe/Zurich": ["蘇黎世, 瑞士", "瑞士 蘇黎世 Zurich"]
     };
 
     const select = document.getElementById('timezone-select');
@@ -73,8 +92,8 @@
         const currentVal = select.value;
         select.innerHTML = '';
         
-        // --- 核心改動：先取出 Key 並排序 ---
-        const sortedKeys = Object.keys(manualList).sort(); 
+        // 自動排序關鍵字 (按 A-Z 排序)
+        const sortedKeys = Object.keys(manualList).sort();
 
         sortedKeys.forEach(tz => {
             const [display, keywords] = manualList[tz];
@@ -91,7 +110,6 @@
             option.textContent = "找不到相關城市";
             select.appendChild(option);
         } else if (currentVal) {
-            // 盡量保留原本選取的項目
             select.value = currentVal;
         }
     }
@@ -101,8 +119,11 @@
         if (!timezone || timezone === "找不到相關城市") return;
 
         const now = new Date();
-        const timeStr = new Intl.DateTimeFormat('zh-TW', { timeZone: timezone, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now);
-        const dateStr = new Intl.DateTimeFormat('zh-TW', { timeZone: timezone, year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }).format(now);
+        const timeOptions = { timeZone: timezone, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+        const dateOptions = { timeZone: timezone, year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+
+        const timeStr = new Intl.DateTimeFormat('zh-TW', timeOptions).format(now);
+        const dateStr = new Intl.DateTimeFormat('zh-TW', dateOptions).format(now);
         
         document.getElementById('clock').textContent = timeStr;
         document.getElementById('date').textContent = dateStr;
