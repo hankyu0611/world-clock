@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全球時間查詢</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9; margin: 0; }
+        .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 350px; }
+        select, .time-display { margin-top: 1.5rem; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 1.1rem; }
+        .time-display { font-size: 2rem; font-weight: bold; color: #333; border: none; background: #eee; }
+        h1 { color: #444; font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌍 全球時間查詢</h1>
+    
+    <select id="timezone-select">
+        <option value="Asia/Taipei">台北 (GMT+8)</option>
+        <option value="Asia/Tokyo">東京 (GMT+9)</option>
+        <option value="Europe/London">倫敦 (GMT+0/1)</option>
+        <option value="America/New_York">紐約 (GMT-5/4)</option>
+        <option value="America/Los_Angeles">洛杉磯 (GMT-8/7)</option>
+        <option value="Australia/Sydney">雪梨 (GMT+10/11)</option>
+    </select>
+
+    <div id="clock" class="time-display">00:00:00</div>
+    <p id="date-display" style="color: #666;"></p>
+</div>
+
+<script>
+    function updateTime() {
+        const timezone = document.getElementById('timezone-select').value;
+        const now = new Date();
+
+        // 格式化時間
+        const timeOptions = {
+            timeZone: timezone,
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hour12: false
+        };
+        const dateOptions = {
+            timeZone: timezone,
+            year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+        };
+
+        const timeString = new Intl.DateTimeFormat('zh-TW', timeOptions).format(now);
+        const dateString = new Intl.DateTimeFormat('zh-TW', dateOptions).format(now);
+
+        document.getElementById('clock').textContent = timeString;
+        document.getElementById('date-display').textContent = dateString;
+    }
+
+    // 每秒更新一次
+    setInterval(updateTime, 1000);
+    // 切換時區時立即更新
+    document.getElementById('timezone-select').addEventListener('change', updateTime);
+    // 網頁載入時先執行一次
+    updateTime();
+</script>
+
+</body>
+</html>
