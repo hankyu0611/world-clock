@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全球城市時鐘 (手寫對照版)</title>
+    <title>全球城市時鐘 (自動排序版)</title>
     <style>
-        :root { --primary-color: #2c3e50; --accent-color: #27ae60; }
-        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: #f0f3f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        :root { --primary-color: #2c3e50; --accent-color: #3498db; }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
         .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
         h1 { color: var(--primary-color); margin-bottom: 1.5rem; font-size: 1.5rem; }
         .search-box { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; margin-bottom: 10px; box-sizing: border-box; font-size: 1rem; outline: none; }
         .search-box:focus { border-color: var(--accent-color); }
-        select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 1rem; margin-bottom: 20px; background: #fff; }
+        select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 1rem; margin-bottom: 20px; background: #fff; cursor: pointer; }
         .display-area { background: var(--primary-color); padding: 30px; border-radius: 15px; color: white; }
         #clock { font-size: 3rem; font-weight: bold; font-family: 'Courier New', monospace; margin-bottom: 10px; }
         #date { font-size: 1rem; opacity: 0.8; margin-bottom: 15px; }
-        #city-display { font-size: 1.3rem; font-weight: bold; color: #fff; border-bottom: 2px solid var(--accent-color); display: inline-block; padding-bottom: 5px; }
+        #city-display { font-size: 1.3rem; font-weight: bold; color: #fff; background: rgba(255,255,255,0.2); display: inline-block; padding: 4px 15px; border-radius: 20px; }
         #tz-en { font-size: 0.75rem; opacity: 0.4; margin-top: 10px; }
     </style>
 </head>
@@ -23,7 +23,7 @@
 
 <div class="card">
     <h1>🌍 全球時間查詢</h1>
-    <input type="text" id="search" class="search-box" placeholder="搜尋國家或城市 (如: 美國, 日本, 紐約)">
+    <input type="text" id="search" class="search-box" placeholder="搜尋國家、城市、縮寫...">
     <select id="timezone-select"></select>
 
     <div class="display-area">
@@ -35,7 +35,7 @@
 </div>
 
 <script>
-   // 手寫對照表：[顯示名稱, 關鍵字搜尋用]
+    // 手寫對照表
     const manualList = {
         "Asia/Taipei": ["台北, 台灣", "台灣 台北 Taiwan Taipei"],
         "Asia/Tokyo": ["東京, 日本", "日本 東京 Japan Tokyo"],
@@ -44,7 +44,7 @@
         "Asia/Shanghai": ["上海, 中國", "上海 中國 China Shanghai"],
         "Asia/Singapore": ["新加坡", "新加坡 Singapore"],
         "Asia/Bangkok": ["曼谷, 泰國", "泰國 曼谷 Thailand Bangkok"],
-        "Asia/Makassar": ["峇里島, 印尼", "印尼 峇里島 Indonesia Bali"], // 新增峇里島
+        "Asia/Makassar": ["峇里島, 印尼", "印尼 峇里島 Indonesia Bali"],
         "Asia/Jakarta": ["雅加達, 印尼", "印尼 雅加達 Jakarta"],
         "Asia/Ho_Chi_Minh": ["胡志明市, 越南", "越南 胡志明市 Vietnam"],
         "America/New_York": ["紐約, 美國 (東岸)", "美國 紐約 USA New York East"],
@@ -73,20 +73,26 @@
         const currentVal = select.value;
         select.innerHTML = '';
         
-        // 只循環手寫表裡的內容，確保不出現奇怪的翻譯
-        for (const [tz, [display, keywords]] of Object.entries(manualList)) {
+        // --- 核心改動：先取出 Key 並排序 ---
+        const sortedKeys = Object.keys(manualList).sort(); 
+
+        sortedKeys.forEach(tz => {
+            const [display, keywords] = manualList[tz];
             if (keywords.toLowerCase().includes(filter.toLowerCase()) || display.includes(filter)) {
                 const option = document.createElement('option');
                 option.value = tz;
                 option.textContent = display;
                 select.appendChild(option);
             }
-        }
+        });
         
         if (select.options.length === 0) {
             const option = document.createElement('option');
             option.textContent = "找不到相關城市";
             select.appendChild(option);
+        } else if (currentVal) {
+            // 盡量保留原本選取的項目
+            select.value = currentVal;
         }
     }
 
