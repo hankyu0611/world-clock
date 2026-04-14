@@ -3,119 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全球城市時鐘搜尋</title>
+    <title>全球自動中文化時鐘</title>
     <style>
-        :root { --primary-color: #4a90e2; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 2.5rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 400px; text-align: center; }
-        h1 { color: #333; margin-bottom: 1.5rem; font-size: 1.6rem; }
-        
-        /* 搜尋與選擇框樣式 */
-        .search-box { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 10px; box-sizing: border-box; font-size: 1rem; outline: none; transition: border-color 0.3s; }
-        .search-box:focus { border-color: var(--primary-color); }
-        
-        select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 1rem; background: #fafafa; cursor: pointer; margin-bottom: 20px; }
-
-        /* 時鐘顯示 */
-        .display-area { background: #f8f9fa; padding: 20px; border-radius: 15px; border-left: 5px solid var(--primary-color); }
-        #clock { font-size: 2.5rem; font-weight: 700; color: #222; font-family: 'Courier New', Courier, monospace; }
-        #date { color: #666; margin-top: 5px; font-size: 0.95rem; }
-        #timezone-name { margin-top: 15px; font-size: 0.8rem; color: #999; text-transform: uppercase; letter-spacing: 1px; }
+        :root { --primary-color: #2c3e50; --accent-color: #e67e22; }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
+        h1 { color: var(--primary-color); margin-bottom: 1.5rem; font-size: 1.6rem; }
+        .search-box { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 10px; box-sizing: border-box; font-size: 1rem; outline: none; transition: 0.3s; }
+        .search-box:focus { border-color: var(--accent-color); }
+        select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 1rem; margin-bottom: 20px; background: #fff; }
+        .display-area { background: var(--primary-color); padding: 35px; border-radius: 15px; color: white; box-shadow: inset 0 0 20px rgba(0,0,0,0.2); }
+        #clock { font-size: 3.2rem; font-weight: bold; font-family: 'Courier New', monospace; margin-bottom: 10px; letter-spacing: 2px; }
+        #date { font-size: 1.1rem; opacity: 0.9; margin-bottom: 15px; }
+        #city-ch { font-size: 1.4rem; font-weight: bold; color: var(--accent-color); background: #fff; display: inline-block; padding: 5px 20px; border-radius: 25px; margin-bottom: 10px; }
+        #timezone-en { font-size: 0.8rem; opacity: 0.5; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1>🌍 全球城市時鐘</h1>
-    
-    <input type="text" id="search" class="search-box" placeholder="搜尋城市 (如: New York, London...)">
-    
+    <h1>🌍 全球自動翻譯時鐘</h1>
+    <input type="text" id="search" class="search-box" placeholder="搜尋城市中文或英文...">
     <select id="timezone-select"></select>
 
     <div class="display-area">
         <div id="clock">00:00:00</div>
-        <div id="date">載入中...</div>
-        <div id="timezone-name">UTC</div>
+        <div id="date">讀取中...</div>
+        <div id="city-ch">台北時間</div>
+        <div id="timezone-en">Asia/Taipei</div>
     </div>
 </div>
 
 <script>
     const select = document.getElementById('timezone-select');
     const searchInput = document.getElementById('search');
-    const clockEl = document.getElementById('clock');
-    const dateEl = document.getElementById('date');
-    const nameEl = document.getElementById('timezone-name');
-
-    // 1. 取得瀏覽器支援的所有時區名稱
+    
+    // 關鍵：使用瀏覽器內建的翻譯器
+    const regionNames = new Intl.DisplayNames(['zh-TW'], { type: 'region' });
     const allTimezones = Intl.supportedValuesOf('timeZone');
 
-    // 2. 渲染選單的函式
+    // 格式化顯示名稱的函式
+    function getChineseName(tz) {
+        try {
+            // 嘗試取得該時區的中文長格式 (例如：台北時間)
+            const formatter = new Intl.DateTimeFormat('zh-TW', {
+                timeZone: tz,
+                timeZoneName: 'long'
+            });
+            const parts = formatter.formatToParts(new Date());
+            const tzName = parts.find(p => p.type === 'timeZoneName').value;
+            
+            // 處理一些顯示上的優化，把底線換成空格，讓英文部分也好讀
+            const cleanEn = tz.split('/').pop().replace('_', ' ');
+            return { full: `${cleanEn} (${tzName})`, simple: tzName };
+        } catch (e) {
+            return { full: tz, simple: tz };
+        }
+    }
+
     function renderOptions(filter = '') {
-        const currentSelection = select.value;
+        const currentVal = select.value;
         select.innerHTML = '';
         
-        const filtered = allTimezones.filter(tz => 
-            tz.toLowerCase().includes(filter.toLowerCase())
-        );
-
-        filtered.forEach(tz => {
-            const option = document.createElement('option');
-            option.value = tz;
-            // 將 "America/Los_Angeles" 取代為 "America - Los Angeles" 比較好讀
-            option.textContent = tz.replace('_', ' ').replace('/', ' - ');
-            select.appendChild(option);
+        allTimezones.forEach(tz => {
+            const names = getChineseName(tz);
+            if (tz.toLowerCase().includes(filter.toLowerCase()) || names.simple.includes(filter)) {
+                const option = document.createElement('option');
+                option.value = tz;
+                option.textContent = names.full;
+                select.appendChild(option);
+            }
         });
-
-        if (filtered.length === 0) {
-            const option = document.createElement('option');
-            option.textContent = "找不到相關城市";
-            select.appendChild(option);
+        
+        if (currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
+            select.value = currentVal;
         }
     }
 
-    // 3. 更新時間的函式
     function updateTime() {
         const timezone = select.value;
-        if (!timezone || timezone === "找不到相關城市") return;
+        if (!timezone) return;
 
         const now = new Date();
+        const timeStr = new Intl.DateTimeFormat('zh-TW', { timeZone: timezone, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now);
+        const dateStr = new Intl.DateTimeFormat('zh-TW', { timeZone: timezone, year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }).format(now);
         
-        try {
-            const timeStr = new Intl.DateTimeFormat('zh-TW', {
-                timeZone: timezone,
-                hour: '2-digit', minute: '2-digit', second: '2-digit',
-                hour12: false
-            }).format(now);
+        const names = getChineseName(timezone);
 
-            const dateStr = new Intl.DateTimeFormat('zh-TW', {
-                timeZone: timezone,
-                year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
-            }).format(now);
-
-            clockEl.textContent = timeStr;
-            dateEl.textContent = dateStr;
-            nameEl.textContent = timezone;
-        } catch (e) {
-            console.error("時區錯誤", e);
-        }
+        document.getElementById('clock').textContent = timeStr;
+        document.getElementById('date').textContent = dateStr;
+        document.getElementById('city-ch').textContent = names.simple;
+        document.getElementById('timezone-en').textContent = timezone;
     }
 
-    // 搜尋輸入監聽
-    searchInput.addEventListener('input', (e) => {
-        renderOptions(e.target.value);
-        updateTime();
-    });
-
-    // 選單切換監聽
+    searchInput.addEventListener('input', (e) => renderOptions(e.target.value));
     select.addEventListener('change', updateTime);
 
     // 初始化
     renderOptions();
-    // 預設選中台北 (如果有的話)
-    if (allTimezones.includes('Asia/Taipei')) {
-        select.value = 'Asia/Taipei';
-    }
-    
+    select.value = 'Asia/Taipei';
     setInterval(updateTime, 1000);
     updateTime();
 </script>
