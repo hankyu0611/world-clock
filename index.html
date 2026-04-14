@@ -3,20 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全球城市時鐘 - 完整強大版</title>
+    <title>全球城市時鐘 - 中英雙顯版</title>
     <style>
         :root { --primary-color: #2c3e50; --accent-color: #3498db; }
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
+        .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 480px; text-align: center; }
         h1 { color: var(--primary-color); margin-bottom: 1.5rem; font-size: 1.5rem; }
         .search-box { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; margin-bottom: 10px; box-sizing: border-box; font-size: 1rem; outline: none; }
         .search-box:focus { border-color: var(--accent-color); }
         select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 1rem; margin-bottom: 20px; background: #fff; cursor: pointer; }
         .display-area { background: var(--primary-color); padding: 30px; border-radius: 15px; color: white; }
-        #clock { font-size: 3rem; font-weight: bold; font-family: 'Courier New', monospace; margin-bottom: 10px; }
-        #date { font-size: 1rem; opacity: 0.8; margin-bottom: 15px; }
-        #city-display { font-size: 1.3rem; font-weight: bold; color: #fff; background: rgba(255,255,255,0.2); display: inline-block; padding: 4px 15px; border-radius: 20px; }
-        #tz-en { font-size: 0.75rem; opacity: 0.4; margin-top: 10px; }
+        #clock { font-size: 3.2rem; font-weight: bold; font-family: 'Courier New', monospace; margin-bottom: 10px; }
+        #date { font-size: 1.1rem; opacity: 0.8; margin-bottom: 15px; }
+        /* 調整顯示區域讓中英文都能清楚呈現 */
+        .city-info { margin-top: 10px; }
+        #city-ch-display { font-size: 1.3rem; font-weight: bold; color: #fff; display: block; margin-bottom: 5px; }
+        #city-en-display { font-size: 0.9rem; color: var(--accent-color); font-weight: 500; letter-spacing: 0.5px; }
+        #tz-en-path { font-size: 0.7rem; opacity: 0.4; margin-top: 15px; display: block; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
     </style>
 </head>
 <body>
